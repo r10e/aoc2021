@@ -1,87 +1,49 @@
 import { readFileSync } from 'fs';
 
-class Instruction {
-	constructor(input: string = '') {
-		const [direction, by] = input.split(' ');
-		switch (direction) {
-			case 'forward': {
-				this.forward = parseInt(by);
-				break;
-			}
-			case 'down': {
-				this.down = parseInt(by);
-				break;
-			}
-			case 'up': {
-				this.up = parseInt(by);
-				break;
-			}
-		}
+const addEach = (array1: number[], array2: number[]): number[] => {
+	const result: number[] = [];
+	for (let i = 0; i < array1.length; i++) {
+		result.push(array1[i] + array2[i]);
 	}
-	forward: number = 0;
-	down: number = 0;
-	up: number = 0;
-}
+	return result;
+};
 
-class Position {
-	constructor(horizontal: number = 0, depth: number = 0, aim: number = 0) {
-		this.horizontal = horizontal;
-		this.depth = depth;
-		this.aim = aim;
+const mostOften = (array1: number[], divisor: number): number[] => {
+	const result: number[] = [];
+	for (let i = 0; i < array1.length; i++) {
+		result.push(Math.round(array1[i] / divisor));
 	}
-	horizontal: number;
-	depth: number;
-	aim: number;
+	return result;
+};
 
+const asBinary = (array: number[]): number => {
+	return array
+		.reverse()
+		.map((bit, index) => {
+			return bit * Math.pow(2, index);
+		})
+		.reduce((a, b) => a + b, 0);
+};
 
-	move1(by: Instruction): Position {
-		return new Position(
-			this.horizontal + by.forward,
-			this.depth + by.down - by.up,
-			this.aim
-		);
-	}
+const input: number[][] = readFileSync('src/input.txt', 'utf8')
+	.split('\n')
+	.filter((x) => x.length)
+	.map((bits) => bits.split('').map((x) => parseInt(x.trim())));
 
-	move2(by: Instruction): Position {
-		if (by.forward) {
-			return new Position(
-				this.horizontal + by.forward,
-				this.depth + this.aim * by.forward,
-				this.aim,
-			);
-		} else {
-			return new Position(
-				this.horizontal,
-				this.depth,
-				this.aim + by.down - by.up,
-			);
-		}
-	}
-
-	result1(): number {
-		return this.horizontal * this.depth;
-	}
-}
-
-const input: string[] = readFileSync('src/input.txt', 'utf8').split('\n');
-
-console.log(
-	input
-		.map((str) => new Instruction(str))
-		.reduce((pos: Position, move: Instruction) => {
-			const newPosition = pos.move1(move);
-			return newPosition;
-		}, new Position())
-		.result1(),
+const deltaArray = mostOften(
+	input.reduce(
+		(a, b) => {
+			return addEach(a, b);
+		},
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	),
+	input.length,
 );
 
+const epsilonArray = deltaArray.map((x) => 1 - x);
 
-console.log(
-	input
-		.map((str) => new Instruction(str))
-		.reduce((pos: Position, move: Instruction) => {
-			const newPosition = pos.move2(move);
-			return newPosition;
-		}, new Position())
-		.result1(),
-);
+const delta = asBinary(deltaArray);
+
+const epsilon = asBinary(epsilonArray);
+
+console.log(delta * epsilon);
